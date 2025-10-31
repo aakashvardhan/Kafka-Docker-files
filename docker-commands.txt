@@ -1,0 +1,31 @@
+docker compose build
+
+docker compose up -d
+
+Terminal 1:
+docker compose logs -f zookeeper
+
+Terminal 2:
+docker compose logs -f broker
+
+
+executing a shell
+
+terminal 1:
+docker exec -it zk bash
+zookeeper-server-start.sh $KAFKAHOME/kafka/config/zookeeper.properties
+
+terminal 2:
+docker exec -it broker bash
+kafka-server-start.sh $KAFKAHOME/kafka/config/server.properties
+
+
+in case of issue from logs:
+after making changes to Dockerfile and compose then
+
+docker compose down --volumes --remove-orphans
+docker compose build --no-cache
+docker compose up -d
+
+
+docker logs zk --tail=100
