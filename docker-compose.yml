@@ -30,7 +30,8 @@ services:
       - KAFKAHOME=/home
     command: ["/usr/local/bin/kafka-start"]
     ports:
-      - "9092:9092"
+      - "9092:9092" # for in-cluster
+      - "29092:29092" # for local machine
     volumes:
       - broker-data:/home/kafka/data/server
     stop_grace_period: 40s

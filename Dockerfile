@@ -25,10 +25,22 @@ RUN mkdir -p ${KAFKAHOME}/kafka/data/zookeeper ${KAFKAHOME}/kafka/data/server
 # Configure ZK dataDir and broker log.dirs; wire ZK hostname for compose
 RUN sed -i 's|^dataDir=.*|dataDir=/home/kafka/data/zookeeper|' ${KAFKAHOME}/kafka/config/zookeeper.properties \
     && sed -i 's|^zookeeper.connect=.*|zookeeper.connect=zookeeper:2181|' ${KAFKAHOME}/kafka/config/server.properties \
-    && sed -i 's|^#\?log.dirs=.*|log.dirs=/home/kafka/data/server|' ${KAFKAHOME}/kafka/config/server.properties \
-    && echo "" >> ${KAFKAHOME}/kafka/config/server.properties \
-    && echo "listeners=PLAINTEXT://:9092" >> ${KAFKAHOME}/kafka/config/server.properties \
-    && echo "advertised.listeners=PLAINTEXT://localhost:9092" >> ${KAFKAHOME}/kafka/config/server.properties
+    && sed -i 's|^#\?log.dirs=.*|log.dirs=/home/kafka/data/server|' ${KAFKAHOME}/kafka/config/server.properties
+
+# define two listeners and map protocols
+# you need two listeners: one so container inside Docker talk to 'broker:9092'
+# and another so my local machine connects through 'localhost:29092'
+# allows flexibility in running python scripts
+RUN sed -i 's|^#\?listeners=.*||' ${KAFKAHOME}/kafka/config/server.properties \
+    && sed -i 's|^#\?advertised.listeners=.*||' ${KAFKAHOME}/kafka/config/server.properties \
+    && sed -i 's|^#\?inter.broker.listener.name=.*||' ${KAFKAHOME}/kafka/config/server.properties \
+    && sed -i 's|^#\?listener.security.protocol.map=.*||' ${KAFKAHOME}/kafka/config/server.properties \
+    && printf '\n%s\n' \
+    'listeners=PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092' \
+    'advertised.listeners=PLAINTEXT://broker:9092,PLAINTEXT_HOST://localhost:29092' \
+    'listener.security.protocol.map=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT' \
+    'inter.broker.listener.name=PLAINTEXT' \
+    >> ${KAFKAHOME}/kafka/config/server.properties
 
 
 # Add a non-root user with a home so .bashrc exists
